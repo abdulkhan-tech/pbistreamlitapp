@@ -1,0 +1,868 @@
+{
+  "step_1_source_discovery": {
+    "title": "Source Discovery - Identify source requirements and meet with source team",
+    "tickets": [
+      {
+        "id": "SD-REQ",
+        "title": "[{SOURCE}] Source Discovery - Requirements Gathering & SME Identification",
+        "type": "User Story",
+        "owner": "Data Analyst",
+        "description": "As a Data Analyst, I need to gather comprehensive source requirements and identify Subject Matter Experts (SMEs) to ensure successful data integration from {SOURCE}.\n\n## Overview\nThis ticket covers the initial discovery phase for {SOURCE} integration, including requirements gathering, SME identification, and source catalog documentation.\n\n## Scope\n- **Requirements Gathering**: Document all data requirements, business rules, and data quality expectations\n- **SME Identification**: Identify and engage with source system SMEs and business stakeholders\n- **Source Catalog**: Complete the source catalog with detailed metadata information\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Integration Pattern: Batch/Streaming (TBD based on requirements)",
+        "acceptance_criteria": [
+          "All source system requirements are documented and approved by stakeholders",
+          "SMEs are identified and contact information is recorded in the project documentation",
+          "Source system data dictionary is obtained and reviewed",
+          "Data volume, velocity, and variety characteristics are documented",
+          "Source catalog entry is complete with all required fields populated",
+          "Business rules and data transformation requirements are documented",
+          "Data quality requirements and SLAs are defined and agreed upon",
+          "Security and compliance requirements are identified"
+        ],
+        "tags": ["source-discovery", "requirements", "planning"]
+      },
+      {
+        "id": "SD-IDA",
+        "title": "[{SOURCE}] Source Discovery - Ingestion Design & Analysis",
+        "type": "User Story",
+        "owner": "Data Analyst",
+        "description": "As a Data Analyst, I need to design the ingestion approach for {SOURCE} to ensure optimal data flow and integration patterns.\n\n## Overview\nThis ticket covers the technical design phase for {SOURCE} ingestion, including architecture decisions, ingestion patterns, and technical specifications.\n\n## Scope\n- **Ingestion Design**: Define the technical approach for data ingestion\n- **Data Profiling**: Analyze source data structure, quality, and patterns\n- **Architecture Documentation**: Document the proposed ingestion architecture\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Medallion Architecture: Bronze → Silver → Gold",
+        "acceptance_criteria": [
+          "Ingestion design document is created and reviewed",
+          "Data profiling results are documented with sample data analysis",
+          "Ingestion pattern (full/incremental/CDC) is determined and documented",
+          "Data lineage mapping is completed from source to target",
+          "Technical specifications for data types and transformations are defined",
+          "Error handling and retry strategies are documented",
+          "Performance requirements and benchmarks are established",
+          "Design is approved by technical lead and architect"
+        ],
+        "tags": ["source-discovery", "design", "analysis"]
+      }
+    ]
+  },
+  "step_2_platform_setup": {
+    "title": "Platform Setup/Sprint Zero - Infrastructure and repository setup",
+    "tickets": [
+      {
+        "id": "PS-SETUP",
+        "title": "[{SOURCE}] Platform Setup - Infrastructure & Repository Configuration",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to set up all required infrastructure components for {SOURCE} integration including storage, repository, secrets, and network configuration.\n\n## Overview\nThis ticket covers the complete platform setup (Sprint Zero) for {SOURCE}, ensuring all infrastructure components are provisioned and configured correctly.\n\n## Scope\n1. **Bucket Creation**: Create and configure storage buckets/containers for data landing\n2. **Dataset Creation**: Set up datasets/schemas in the target data platform\n3. **GitHub Repository Creation**: Create and configure repository with proper branching strategy\n4. **Secrets Creation**: Set up Key Vault/Secrets Manager with required credentials\n5. **Acquire Credentials**: Obtain and securely store source system credentials\n6. **Firewall Rules**: Configure network security rules for source connectivity\n7. **Source Connectivity**: Validate end-to-end connectivity to source system\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Infrastructure: Azure/Databricks/Lakehouse",
+        "acceptance_criteria": [
+          "Storage bucket/container is created with proper naming convention and access policies",
+          "Dataset/schema is created in Dev Landing lakehouse with appropriate permissions",
+          "GitHub repository is created with main, develop, and feature branch structure",
+          "Branch policies and PR requirements are configured",
+          "CI/CD pipeline templates are set up in the repository",
+          "All required secrets are stored in Key Vault with proper access policies",
+          "Source system credentials are obtained and securely stored",
+          "Firewall rules are configured and documented",
+          "Network connectivity test to source system is successful",
+          "Service principal/managed identity has required permissions",
+          "Infrastructure as Code (IaC) templates are committed to repository",
+          "README.md with setup instructions is created"
+        ],
+        "tags": ["platform-setup", "infrastructure", "sprint-zero"]
+      }
+    ]
+  },
+  "step_3_bronze_ingestion": {
+    "title": "Bronze Ingestion - Load data from source into Dev Landing lakehouse project",
+    "tickets": [
+      {
+        "id": "BR-ICE",
+        "title": "[{SOURCE}] Bronze - Create Iceberg Tables",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to create Iceberg tables in the Bronze layer to store raw data from {SOURCE}.\n\n## Overview\nCreate and configure Apache Iceberg tables for the Bronze layer that will store raw, unprocessed data from {SOURCE}.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Bronze (Raw)\n- Table Format: Apache Iceberg",
+        "acceptance_criteria": [
+          "Iceberg tables are created with appropriate schema matching source structure",
+          "Table properties are configured (partitioning, compaction, retention)",
+          "Table naming conventions follow organizational standards",
+          "Schema evolution strategy is documented",
+          "Table metadata is registered in data catalog",
+          "DDL scripts are version controlled in repository"
+        ],
+        "tags": ["bronze", "iceberg", "tables"]
+      },
+      {
+        "id": "BR-PIP",
+        "title": "[{SOURCE}] Bronze - Ingestion Pipeline Development",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to develop the ingestion pipeline to load raw data from {SOURCE} into the Bronze layer.\n\n## Overview\nDevelop and implement the data ingestion pipeline for loading raw data from {SOURCE} into Bronze layer Iceberg tables.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Bronze (Raw)\n- Architecture: Medallion (Bronze Layer)",
+        "acceptance_criteria": [
+          "Ingestion pipeline is developed following coding standards",
+          "Pipeline handles connection to source system securely",
+          "Data is loaded into Bronze tables in raw format",
+          "Pipeline includes proper logging and monitoring",
+          "Error handling and retry logic is implemented",
+          "Pipeline configuration is externalized (no hardcoded values)",
+          "Unit tests are written with minimum 80% coverage",
+          "Pipeline is parameterized for reusability"
+        ],
+        "tags": ["bronze", "pipeline", "development"]
+      },
+      {
+        "id": "BR-ARB",
+        "title": "[{SOURCE}] Bronze - Architecture Review Board (ARB)",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to present the Bronze ingestion solution to the Architecture Review Board for {SOURCE}.\n\n## Overview\nPrepare and present the Bronze layer architecture and implementation to ARB for review and approval.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Review Type: Architecture Review Board",
+        "acceptance_criteria": [
+          "ARB presentation deck is prepared with architecture diagrams",
+          "Solution design document is submitted for review",
+          "Security and compliance aspects are documented",
+          "Performance and scalability considerations are addressed",
+          "ARB meeting is scheduled and conducted",
+          "All ARB questions and concerns are addressed",
+          "ARB approval is obtained and documented"
+        ],
+        "tags": ["bronze", "arb", "review"]
+      },
+      {
+        "id": "BR-ARB-FB",
+        "title": "[{SOURCE}] Bronze - Implement ARB Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from the Architecture Review Board for {SOURCE} Bronze ingestion.\n\n## Overview\nAddress and implement all feedback items from the ARB review for the Bronze layer implementation.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: ARB Feedback Implementation",
+        "acceptance_criteria": [
+          "All ARB feedback items are logged and tracked",
+          "Each feedback item has an implementation plan",
+          "Code changes are implemented per ARB recommendations",
+          "Architecture documentation is updated as needed",
+          "Changes are reviewed and approved by technical lead",
+          "ARB sign-off is obtained on implemented changes"
+        ],
+        "tags": ["bronze", "arb", "feedback"]
+      },
+      {
+        "id": "BR-HIST",
+        "title": "[{SOURCE}] Bronze - Historical Load",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to perform historical/initial load of data from {SOURCE} into the Bronze layer.\n\n## Overview\nExecute the one-time historical load to bring all existing data from {SOURCE} into the Bronze layer.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Load Type: Historical/Initial Load\n- Layer: Bronze (Raw)",
+        "acceptance_criteria": [
+          "Historical load strategy is documented and approved",
+          "Data extraction window is coordinated with source team",
+          "Historical data is successfully loaded into Bronze tables",
+          "Row counts are validated against source system",
+          "Data quality checks pass for historical data",
+          "Load performance metrics are documented",
+          "Any data gaps or issues are documented and addressed"
+        ],
+        "tags": ["bronze", "historical", "load"]
+      },
+      {
+        "id": "BR-INCR",
+        "title": "[{SOURCE}] Bronze - Incremental Load",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement incremental loading for {SOURCE} data into the Bronze layer.\n\n## Overview\nImplement and configure incremental/delta loading mechanism for ongoing data ingestion from {SOURCE}.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Load Type: Incremental/Delta\n- Layer: Bronze (Raw)",
+        "acceptance_criteria": [
+          "Incremental load logic is implemented (watermark/CDC/timestamp)",
+          "Delta detection mechanism is tested and validated",
+          "Pipeline handles late-arriving data appropriately",
+          "Incremental loads are idempotent (re-runnable)",
+          "Performance meets SLA requirements",
+          "Monitoring alerts are configured for load failures",
+          "Schedule/trigger is configured for incremental runs"
+        ],
+        "tags": ["bronze", "incremental", "load"]
+      },
+      {
+        "id": "BR-VAL",
+        "title": "[{SOURCE}] Bronze - Validate",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate the Bronze layer data for {SOURCE} to ensure data quality and completeness.\n\n## Overview\nImplement and execute validation checks for Bronze layer data from {SOURCE}.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Bronze (Raw)\n- Type: Data Validation",
+        "acceptance_criteria": [
+          "Data validation framework is implemented",
+          "Row count reconciliation is performed and matches source",
+          "Schema validation confirms all columns are present",
+          "Null/empty value checks are implemented",
+          "Data type validation is performed",
+          "Sample data comparison with source is documented",
+          "Validation results are logged and reported",
+          "All critical validation checks pass"
+        ],
+        "tags": ["bronze", "validation", "quality"]
+      },
+      {
+        "id": "BR-CR",
+        "title": "[{SOURCE}] Bronze - Code Review",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to submit Bronze ingestion code for peer review for {SOURCE}.\n\n## Overview\nSubmit all Bronze layer code for formal code review following team standards.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Code Review",
+        "acceptance_criteria": [
+          "Pull request is created with proper description",
+          "Code follows team coding standards and best practices",
+          "All unit tests pass in CI pipeline",
+          "Code coverage meets minimum threshold (80%)",
+          "No critical or high severity code quality issues",
+          "Documentation is included in the PR",
+          "At least 2 peer approvals are obtained",
+          "All review comments are addressed"
+        ],
+        "tags": ["bronze", "code-review", "quality"]
+      },
+      {
+        "id": "BR-CR-FB",
+        "title": "[{SOURCE}] Bronze - Implement Code Review Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from code review for {SOURCE} Bronze ingestion.\n\n## Overview\nAddress and implement all feedback from code review for Bronze layer implementation.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Code Review Feedback Implementation",
+        "acceptance_criteria": [
+          "All code review comments are addressed",
+          "Code changes are implemented per review feedback",
+          "Additional tests are added if requested",
+          "Documentation is updated as needed",
+          "Re-review is requested and approved",
+          "PR is merged to develop branch"
+        ],
+        "tags": ["bronze", "code-review", "feedback"]
+      },
+      {
+        "id": "BR-BPR",
+        "title": "[{SOURCE}] Bronze - Business/Product Review",
+        "type": "User Story",
+        "owner": "Product Owner",
+        "description": "As a Product Owner, I need to review Bronze layer implementation with business stakeholders for {SOURCE}.\n\n## Overview\nConduct business/product review to ensure Bronze layer implementation meets business requirements.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Business/Product Review",
+        "acceptance_criteria": [
+          "Business review meeting is scheduled with stakeholders",
+          "Demo of Bronze layer data is prepared",
+          "Data samples are presented for validation",
+          "Business requirements mapping is reviewed",
+          "Stakeholder questions are addressed",
+          "Business approval is obtained and documented",
+          "Action items from review are logged"
+        ],
+        "tags": ["bronze", "business-review", "stakeholder"]
+      },
+      {
+        "id": "BR-BPR-FB",
+        "title": "[{SOURCE}] Bronze - Implement Business/Product Review Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from business review for {SOURCE} Bronze ingestion.\n\n## Overview\nAddress and implement all feedback from business/product review for Bronze layer.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Business Review Feedback Implementation",
+        "acceptance_criteria": [
+          "All business feedback items are documented",
+          "Changes are implemented per business requirements",
+          "Updated solution is validated with business stakeholders",
+          "Documentation is updated to reflect changes",
+          "Business sign-off is obtained"
+        ],
+        "tags": ["bronze", "business-review", "feedback"]
+      },
+      {
+        "id": "BR-QA",
+        "title": "[{SOURCE}] Bronze - Promote to QA",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to promote {SOURCE} Bronze ingestion solution to QA environment.\n\n## Overview\nDeploy and configure Bronze layer solution in QA environment for testing.\n\n## Technical Details\n- Source System: {SOURCE}\n- Source Environment: DEV\n- Target Environment: QA\n- Layer: Bronze (Raw)",
+        "acceptance_criteria": [
+          "Deployment package is prepared and versioned",
+          "QA environment infrastructure is configured",
+          "CI/CD pipeline deploys to QA successfully",
+          "Environment-specific configurations are applied",
+          "Smoke tests pass in QA environment",
+          "QA team is notified of deployment",
+          "Deployment is documented in release notes"
+        ],
+        "tags": ["bronze", "qa", "deployment"]
+      },
+      {
+        "id": "BR-QA-VAL",
+        "title": "[{SOURCE}] Bronze - Validate QA Results",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate {SOURCE} Bronze ingestion results in QA environment.\n\n## Overview\nExecute validation and testing of Bronze layer solution in QA environment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: QA\n- Type: QA Validation",
+        "acceptance_criteria": [
+          "End-to-end testing is completed in QA",
+          "Data validation checks pass in QA",
+          "Performance testing meets SLA requirements",
+          "Integration testing with downstream systems is completed",
+          "Regression testing confirms no existing functionality is broken",
+          "QA sign-off is obtained",
+          "Bug fixes (if any) are implemented and verified"
+        ],
+        "tags": ["bronze", "qa", "validation"]
+      },
+      {
+        "id": "BR-PROD",
+        "title": "[{SOURCE}] Bronze - Promote to Prod",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to promote {SOURCE} Bronze ingestion solution to Production environment.\n\n## Overview\nDeploy Bronze layer solution to Production following change management procedures.\n\n## Technical Details\n- Source System: {SOURCE}\n- Source Environment: QA\n- Target Environment: PROD\n- Layer: Bronze (Raw)",
+        "acceptance_criteria": [
+          "Change request is submitted and approved",
+          "Production deployment checklist is completed",
+          "Rollback plan is documented and tested",
+          "CI/CD pipeline deploys to PROD successfully",
+          "Production configurations are applied correctly",
+          "Post-deployment smoke tests pass",
+          "Monitoring and alerting are configured",
+          "On-call team is notified of new pipeline"
+        ],
+        "tags": ["bronze", "prod", "deployment"]
+      },
+      {
+        "id": "BR-PROD-VAL",
+        "title": "[{SOURCE}] Bronze - Validate Prod Results",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate {SOURCE} Bronze ingestion results in Production environment.\n\n## Overview\nExecute validation of Bronze layer solution in Production and confirm successful deployment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: PROD\n- Type: Production Validation",
+        "acceptance_criteria": [
+          "Production data validation checks pass",
+          "Data reconciliation with source is verified",
+          "Pipeline runs successfully on production schedule",
+          "Monitoring dashboards show healthy metrics",
+          "No critical alerts triggered post-deployment",
+          "Business stakeholders confirm data availability",
+          "Production deployment is documented and closed"
+        ],
+        "tags": ["bronze", "prod", "validation"]
+      },
+      {
+        "id": "BR-PD",
+        "title": "[{SOURCE}] Bronze - PagerDuty Setup",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to configure PagerDuty alerting for {SOURCE} Bronze ingestion pipeline.\n\n## Overview\nSet up PagerDuty integration for monitoring and alerting on Bronze layer pipelines.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: PROD\n- Type: Monitoring & Alerting Setup",
+        "acceptance_criteria": [
+          "PagerDuty service is created for {SOURCE} pipelines",
+          "Alert policies are configured based on SLAs",
+          "Escalation policies are defined and configured",
+          "Integration with monitoring platform is established",
+          "Test alerts are triggered and verified",
+          "On-call schedule is configured",
+          "Runbooks are created and linked to alerts",
+          "Documentation is updated with alerting details"
+        ],
+        "tags": ["bronze", "pagerduty", "monitoring"]
+      }
+    ]
+  },
+  "step_4_silver_core": {
+    "title": "Silver Core Development - Medallion Architecture (applicable to some sources)",
+    "tickets": [
+      {
+        "id": "SV-SDA",
+        "title": "[{SOURCE}] Silver - Source Data Analysis",
+        "type": "User Story",
+        "owner": "Data Modeler",
+        "description": "As a Data Modeler, I need to analyze Bronze layer data from {SOURCE} to design Silver layer transformations.\n\n## Overview\nPerform detailed analysis of Bronze layer data to understand transformation requirements for Silver layer.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Silver (Cleansed/Conformed)\n- Architecture: Medallion (Silver Layer)",
+        "acceptance_criteria": [
+          "Bronze data profiling is completed",
+          "Data quality issues are identified and documented",
+          "Transformation rules are defined based on analysis",
+          "Data model for Silver layer is drafted",
+          "Business rules mapping is documented",
+          "Analysis findings are reviewed with stakeholders"
+        ],
+        "tags": ["silver", "analysis", "design"]
+      },
+      {
+        "id": "SV-MDL",
+        "title": "[{SOURCE}] Silver - Model Tables and Create Tables",
+        "type": "User Story",
+        "owner": "Data Modeler",
+        "description": "As a Data Modeler, I need to model and create Silver layer tables for {SOURCE} data.\n\n## Overview\nDesign and implement Silver layer table structures following dimensional modeling best practices.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Silver (Cleansed/Conformed)\n- Architecture: Medallion (Silver Layer)",
+        "acceptance_criteria": [
+          "Silver layer data model is designed and documented",
+          "Table structures follow naming conventions",
+          "Primary and foreign key relationships are defined",
+          "Partitioning strategy is implemented",
+          "Table DDL scripts are version controlled",
+          "Tables are created in target environment",
+          "Model is registered in data catalog"
+        ],
+        "tags": ["silver", "modeling", "tables"]
+      },
+      {
+        "id": "SV-META",
+        "title": "[{SOURCE}] Silver - Generate Metadata",
+        "type": "User Story",
+        "owner": "Governance",
+        "description": "As a Data Governance Analyst, I need to generate and maintain metadata for {SOURCE} Silver layer tables.\n\n## Overview\nCreate comprehensive metadata documentation for Silver layer tables including lineage, business definitions, and technical details.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Silver (Cleansed/Conformed)\n- Type: Metadata Generation",
+        "acceptance_criteria": [
+          "Column-level metadata is documented",
+          "Business definitions are captured for all fields",
+          "Data lineage from Bronze to Silver is documented",
+          "Data classification (PII, sensitive) is applied",
+          "Metadata is published to data catalog",
+          "Technical metadata is auto-generated where possible"
+        ],
+        "tags": ["silver", "metadata", "documentation"]
+      },
+      {
+        "id": "SV-POL",
+        "title": "[{SOURCE}] Silver - Policy Tag Assignment",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to assign appropriate policy tags to {SOURCE} Silver layer tables for data governance.\n\n## Overview\nImplement data governance controls by assigning policy tags for access control and data classification.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Silver (Cleansed/Conformed)\n- Type: Data Governance",
+        "acceptance_criteria": [
+          "Data classification is completed for all columns",
+          "PII columns are identified and tagged",
+          "Sensitive data columns are tagged appropriately",
+          "Access control policies are applied via tags",
+          "Policy tags are documented in data catalog",
+          "Governance compliance is verified"
+        ],
+        "tags": ["silver", "governance", "policy"]
+      },
+      {
+        "id": "SV-PIP",
+        "title": "[{SOURCE}] Silver - Integration Pipeline Development",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to develop the transformation pipeline for {SOURCE} data from Bronze to Silver layer.\n\n## Overview\nDevelop Silver layer transformation pipeline implementing data cleansing, conforming, and business rules.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Silver (Cleansed/Conformed)\n- Architecture: Medallion (Bronze → Silver)",
+        "acceptance_criteria": [
+          "Transformation pipeline is developed following standards",
+          "Data cleansing rules are implemented",
+          "Data type standardization is applied",
+          "Deduplication logic is implemented where needed",
+          "Business rules and validations are applied",
+          "Pipeline includes comprehensive logging",
+          "Error handling and dead-letter patterns are implemented",
+          "Unit tests achieve minimum 80% coverage"
+        ],
+        "tags": ["silver", "pipeline", "development"]
+      },
+      {
+        "id": "SV-HIST",
+        "title": "[{SOURCE}] Silver - Historical Load",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to perform historical load transformation from Bronze to Silver layer for {SOURCE}.\n\n## Overview\nExecute historical/initial transformation of Bronze data into Silver layer following medallion architecture.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Load Type: Historical/Initial Load\n- Layer: Silver (Cleansed/Conformed)",
+        "acceptance_criteria": [
+          "Historical transformation strategy is documented",
+          "Bronze historical data is transformed to Silver",
+          "Row counts are validated post-transformation",
+          "Data quality metrics meet defined thresholds",
+          "SCD (Slowly Changing Dimension) logic is applied where needed",
+          "Performance metrics are documented",
+          "Data gaps or issues are addressed"
+        ],
+        "tags": ["silver", "historical", "load"]
+      },
+      {
+        "id": "SV-INCR",
+        "title": "[{SOURCE}] Silver - Incremental Load",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement incremental transformation from Bronze to Silver layer for {SOURCE}.\n\n## Overview\nImplement incremental/delta transformation pipeline for ongoing Silver layer updates.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Load Type: Incremental/Delta\n- Layer: Silver (Cleansed/Conformed)",
+        "acceptance_criteria": [
+          "Incremental transformation logic is implemented",
+          "Change data capture from Bronze is handled correctly",
+          "MERGE/UPSERT operations are optimized",
+          "Pipeline handles late-arriving data",
+          "Incremental runs are idempotent",
+          "Performance meets SLA requirements",
+          "Schedule is configured for incremental runs"
+        ],
+        "tags": ["silver", "incremental", "load"]
+      },
+      {
+        "id": "SV-VAL",
+        "title": "[{SOURCE}] Silver - Validate",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate Silver layer data for {SOURCE} to ensure transformation quality.\n\n## Overview\nImplement and execute validation checks for Silver layer data quality and transformation accuracy.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Silver (Cleansed/Conformed)\n- Type: Data Validation",
+        "acceptance_criteria": [
+          "Transformation validation rules are implemented",
+          "Row count reconciliation Bronze vs Silver is verified",
+          "Data type validation confirms conformance",
+          "Business rule validation checks pass",
+          "Referential integrity checks pass",
+          "Data quality scores meet thresholds",
+          "Validation results are logged and reported"
+        ],
+        "tags": ["silver", "validation", "quality"]
+      },
+      {
+        "id": "SV-CR",
+        "title": "[{SOURCE}] Silver - Code Review",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to submit Silver layer code for peer review for {SOURCE}.\n\n## Overview\nSubmit all Silver layer transformation code for formal code review.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Code Review",
+        "acceptance_criteria": [
+          "Pull request is created with comprehensive description",
+          "Code follows team standards and best practices",
+          "All unit tests pass in CI pipeline",
+          "Code coverage meets minimum threshold (80%)",
+          "Transformation logic is well-documented",
+          "At least 2 peer approvals are obtained",
+          "All review comments are addressed"
+        ],
+        "tags": ["silver", "code-review", "quality"]
+      },
+      {
+        "id": "SV-CR-FB",
+        "title": "[{SOURCE}] Silver - Implement Code Review Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from code review for {SOURCE} Silver layer.\n\n## Overview\nAddress and implement all feedback from code review for Silver layer implementation.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Code Review Feedback Implementation",
+        "acceptance_criteria": [
+          "All code review comments are addressed",
+          "Code changes are implemented per feedback",
+          "Additional tests are added if requested",
+          "Documentation is updated as needed",
+          "Re-review is completed and approved",
+          "PR is merged to develop branch"
+        ],
+        "tags": ["silver", "code-review", "feedback"]
+      },
+      {
+        "id": "SV-BPR",
+        "title": "[{SOURCE}] Silver - Business/Product Review",
+        "type": "User Story",
+        "owner": "Product Owner",
+        "description": "As a Product Owner, I need to review Silver layer implementation with business stakeholders for {SOURCE}.\n\n## Overview\nConduct business/product review to ensure Silver layer transformations meet business requirements.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Business/Product Review",
+        "acceptance_criteria": [
+          "Business review meeting is scheduled",
+          "Demo of transformed Silver data is prepared",
+          "Data quality improvements are presented",
+          "Business rules implementation is validated",
+          "Stakeholder questions are addressed",
+          "Business approval is obtained"
+        ],
+        "tags": ["silver", "business-review", "stakeholder"]
+      },
+      {
+        "id": "SV-BPR-FB",
+        "title": "[{SOURCE}] Silver - Implement Business/Product Review Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from business review for {SOURCE} Silver layer.\n\n## Overview\nAddress and implement all feedback from business/product review for Silver layer.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Business Review Feedback Implementation",
+        "acceptance_criteria": [
+          "All business feedback items are documented",
+          "Changes are implemented per business requirements",
+          "Updated transformations are validated",
+          "Documentation is updated to reflect changes",
+          "Business sign-off is obtained"
+        ],
+        "tags": ["silver", "business-review", "feedback"]
+      },
+      {
+        "id": "SV-QA",
+        "title": "[{SOURCE}] Silver - Promote to QA",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to promote {SOURCE} Silver layer solution to QA environment.\n\n## Overview\nDeploy and configure Silver layer transformation solution in QA environment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Source Environment: DEV\n- Target Environment: QA\n- Layer: Silver (Cleansed/Conformed)",
+        "acceptance_criteria": [
+          "Deployment package is prepared and versioned",
+          "QA environment infrastructure is configured",
+          "CI/CD pipeline deploys to QA successfully",
+          "Environment-specific configurations are applied",
+          "Smoke tests pass in QA environment",
+          "QA team is notified of deployment"
+        ],
+        "tags": ["silver", "qa", "deployment"]
+      },
+      {
+        "id": "SV-QA-VAL",
+        "title": "[{SOURCE}] Silver - Validate QA Results",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate {SOURCE} Silver layer results in QA environment.\n\n## Overview\nExecute validation and testing of Silver layer solution in QA environment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: QA\n- Type: QA Validation",
+        "acceptance_criteria": [
+          "End-to-end testing is completed in QA",
+          "Transformation validation checks pass in QA",
+          "Performance testing meets SLA requirements",
+          "Integration testing with Gold layer is completed",
+          "QA sign-off is obtained",
+          "Bug fixes (if any) are implemented and verified"
+        ],
+        "tags": ["silver", "qa", "validation"]
+      },
+      {
+        "id": "SV-PROD",
+        "title": "[{SOURCE}] Silver - Promote to Prod",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to promote {SOURCE} Silver layer solution to Production environment.\n\n## Overview\nDeploy Silver layer transformation solution to Production following change management.\n\n## Technical Details\n- Source System: {SOURCE}\n- Source Environment: QA\n- Target Environment: PROD\n- Layer: Silver (Cleansed/Conformed)",
+        "acceptance_criteria": [
+          "Change request is submitted and approved",
+          "Production deployment checklist is completed",
+          "Rollback plan is documented and tested",
+          "CI/CD pipeline deploys to PROD successfully",
+          "Production configurations are applied",
+          "Post-deployment smoke tests pass",
+          "Monitoring and alerting are configured"
+        ],
+        "tags": ["silver", "prod", "deployment"]
+      }
+    ]
+  },
+  "step_5_gold_analytics": {
+    "title": "Gold Analytics Development - Business-ready data layer (Medallion Architecture)",
+    "tickets": [
+      {
+        "id": "GD-SDA",
+        "title": "[{SOURCE}] Gold - Source Data Analysis",
+        "type": "User Story",
+        "owner": "Data Modeler",
+        "description": "As a Data Modeler, I need to analyze Silver layer data from {SOURCE} to design Gold layer analytics models.\n\n## Overview\nPerform detailed analysis of Silver layer data to understand business requirements and design Gold layer dimensional models.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Gold (Business/Analytics)\n- Architecture: Medallion (Gold Layer)",
+        "acceptance_criteria": [
+          "Silver data profiling is completed",
+          "Business requirements for analytics are gathered",
+          "Dimensional model design is drafted",
+          "Aggregation and summarization rules are defined",
+          "KPI and metric definitions are documented",
+          "Analysis findings are reviewed with business stakeholders"
+        ],
+        "tags": ["gold", "analysis", "design"]
+      },
+      {
+        "id": "GD-MDL",
+        "title": "[{SOURCE}] Gold - Model Tables and Create Tables",
+        "type": "User Story",
+        "owner": "Data Modeler",
+        "description": "As a Data Modeler, I need to model and create Gold layer tables for {SOURCE} business analytics.\n\n## Overview\nDesign and implement Gold layer table structures following star/snowflake schema patterns for analytics and reporting.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Gold (Business/Analytics)\n- Architecture: Medallion (Gold Layer)\n- Schema Pattern: Star/Snowflake",
+        "acceptance_criteria": [
+          "Gold layer dimensional model is designed and documented",
+          "Fact and dimension tables are identified",
+          "Table structures follow naming conventions",
+          "Surrogate key strategy is implemented",
+          "Slowly Changing Dimension (SCD) types are defined",
+          "Table DDL scripts are version controlled",
+          "Tables are created in target environment",
+          "Model is registered in data catalog"
+        ],
+        "tags": ["gold", "modeling", "tables"]
+      },
+      {
+        "id": "GD-META",
+        "title": "[{SOURCE}] Gold - Generate Metadata",
+        "type": "User Story",
+        "owner": "Governance",
+        "description": "As a Data Governance Analyst, I need to generate and maintain metadata for {SOURCE} Gold layer tables.\n\n## Overview\nCreate comprehensive metadata documentation for Gold layer tables including business definitions, lineage, and analytics context.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Gold (Business/Analytics)\n- Type: Metadata Generation",
+        "acceptance_criteria": [
+          "Business glossary terms are linked to columns",
+          "KPI and metric definitions are documented",
+          "Data lineage from Silver to Gold is documented",
+          "Data classification is applied",
+          "Metadata is published to data catalog",
+          "Analytics-specific metadata is captured"
+        ],
+        "tags": ["gold", "metadata", "documentation"]
+      },
+      {
+        "id": "GD-POL",
+        "title": "[{SOURCE}] Gold - Policy Tag Assignment",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to assign appropriate policy tags to {SOURCE} Gold layer tables for data governance and analytics access.\n\n## Overview\nImplement data governance controls and analytics access policies by assigning policy tags.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Gold (Business/Analytics)\n- Type: Data Governance",
+        "acceptance_criteria": [
+          "Data classification is completed for all columns",
+          "Analytics access policies are defined",
+          "Role-based access control is configured",
+          "Sensitive data masking rules are applied where needed",
+          "Policy tags are documented in data catalog",
+          "Governance compliance is verified"
+        ],
+        "tags": ["gold", "governance", "policy"]
+      },
+      {
+        "id": "GD-PIP",
+        "title": "[{SOURCE}] Gold - Integration Pipeline Development",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to develop the transformation pipeline for {SOURCE} data from Silver to Gold layer.\n\n## Overview\nDevelop Gold layer transformation pipeline implementing dimensional modeling, aggregations, and business logic.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Gold (Business/Analytics)\n- Architecture: Medallion (Silver → Gold)",
+        "acceptance_criteria": [
+          "Transformation pipeline is developed following standards",
+          "Dimensional modeling transformations are implemented",
+          "Fact table aggregations are implemented",
+          "Dimension table SCD logic is implemented",
+          "Business calculations and KPIs are computed",
+          "Pipeline includes comprehensive logging",
+          "Error handling and data quality gates are implemented",
+          "Unit tests achieve minimum 80% coverage"
+        ],
+        "tags": ["gold", "pipeline", "development"]
+      },
+      {
+        "id": "GD-HIST",
+        "title": "[{SOURCE}] Gold - Historical Load",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to perform historical load transformation from Silver to Gold layer for {SOURCE}.\n\n## Overview\nExecute historical/initial transformation of Silver data into Gold layer analytics tables.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Load Type: Historical/Initial Load\n- Layer: Gold (Business/Analytics)",
+        "acceptance_criteria": [
+          "Historical transformation strategy is documented",
+          "Silver historical data is transformed to Gold",
+          "Dimensional integrity is validated",
+          "Fact-dimension relationships are verified",
+          "Aggregation accuracy is validated",
+          "Performance metrics are documented"
+        ],
+        "tags": ["gold", "historical", "load"]
+      },
+      {
+        "id": "GD-INCR",
+        "title": "[{SOURCE}] Gold - Incremental Load",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement incremental transformation from Silver to Gold layer for {SOURCE}.\n\n## Overview\nImplement incremental/delta transformation pipeline for ongoing Gold layer updates.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Load Type: Incremental/Delta\n- Layer: Gold (Business/Analytics)",
+        "acceptance_criteria": [
+          "Incremental transformation logic is implemented",
+          "Dimension updates (SCD) are handled correctly",
+          "Fact table inserts/updates are optimized",
+          "Late-arriving dimensions are handled",
+          "Incremental runs are idempotent",
+          "Performance meets SLA requirements",
+          "Schedule is configured for incremental runs"
+        ],
+        "tags": ["gold", "incremental", "load"]
+      },
+      {
+        "id": "GD-VAL",
+        "title": "[{SOURCE}] Gold - Validate",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate Gold layer data for {SOURCE} to ensure analytics accuracy.\n\n## Overview\nImplement and execute validation checks for Gold layer data quality and analytics accuracy.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Layer: Gold (Business/Analytics)\n- Type: Data Validation",
+        "acceptance_criteria": [
+          "Dimensional integrity validation is implemented",
+          "Fact-dimension join validation passes",
+          "Aggregation accuracy is verified against source",
+          "Business rule validation checks pass",
+          "KPI calculations are verified",
+          "Data freshness checks pass",
+          "Validation results are logged and reported"
+        ],
+        "tags": ["gold", "validation", "quality"]
+      },
+      {
+        "id": "GD-CR",
+        "title": "[{SOURCE}] Gold - Code Review",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to submit Gold layer code for peer review for {SOURCE}.\n\n## Overview\nSubmit all Gold layer transformation code for formal code review.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Code Review",
+        "acceptance_criteria": [
+          "Pull request is created with comprehensive description",
+          "Code follows team standards and best practices",
+          "All unit tests pass in CI pipeline",
+          "Code coverage meets minimum threshold (80%)",
+          "Transformation logic is well-documented",
+          "At least 2 peer approvals are obtained",
+          "All review comments are addressed"
+        ],
+        "tags": ["gold", "code-review", "quality"]
+      },
+      {
+        "id": "GD-CR-FB",
+        "title": "[{SOURCE}] Gold - Implement Code Review Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from code review for {SOURCE} Gold layer.\n\n## Overview\nAddress and implement all feedback from code review for Gold layer implementation.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Code Review Feedback Implementation",
+        "acceptance_criteria": [
+          "All code review comments are addressed",
+          "Code changes are implemented per feedback",
+          "Additional tests are added if requested",
+          "Documentation is updated as needed",
+          "Re-review is completed and approved",
+          "PR is merged to develop branch"
+        ],
+        "tags": ["gold", "code-review", "feedback"]
+      },
+      {
+        "id": "GD-BPR",
+        "title": "[{SOURCE}] Gold - Business/Product Review",
+        "type": "User Story",
+        "owner": "Product Owner",
+        "description": "As a Product Owner, I need to review Gold layer implementation with business stakeholders for {SOURCE}.\n\n## Overview\nConduct business/product review to ensure Gold layer analytics meet business requirements.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Business/Product Review",
+        "acceptance_criteria": [
+          "Business review meeting is scheduled",
+          "Demo of analytics data is prepared",
+          "KPI and metric calculations are validated",
+          "Report/dashboard samples are presented",
+          "Stakeholder questions are addressed",
+          "Business approval is obtained"
+        ],
+        "tags": ["gold", "business-review", "stakeholder"]
+      },
+      {
+        "id": "GD-BPR-FB",
+        "title": "[{SOURCE}] Gold - Implement Business/Product Review Feedback",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to implement feedback from business review for {SOURCE} Gold layer.\n\n## Overview\nAddress and implement all feedback from business/product review for Gold layer.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: {ENV}\n- Type: Business Review Feedback Implementation",
+        "acceptance_criteria": [
+          "All business feedback items are documented",
+          "Changes are implemented per business requirements",
+          "Updated analytics are validated",
+          "Documentation is updated to reflect changes",
+          "Business sign-off is obtained"
+        ],
+        "tags": ["gold", "business-review", "feedback"]
+      },
+      {
+        "id": "GD-QA",
+        "title": "[{SOURCE}] Gold - Promote to QA",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to promote {SOURCE} Gold layer solution to QA environment.\n\n## Overview\nDeploy and configure Gold layer analytics solution in QA environment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Source Environment: DEV\n- Target Environment: QA\n- Layer: Gold (Business/Analytics)",
+        "acceptance_criteria": [
+          "Deployment package is prepared and versioned",
+          "QA environment infrastructure is configured",
+          "CI/CD pipeline deploys to QA successfully",
+          "Environment-specific configurations are applied",
+          "Smoke tests pass in QA environment",
+          "QA team is notified of deployment"
+        ],
+        "tags": ["gold", "qa", "deployment"]
+      },
+      {
+        "id": "GD-QA-VAL",
+        "title": "[{SOURCE}] Gold - Validate QA Results",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate {SOURCE} Gold layer results in QA environment.\n\n## Overview\nExecute validation and testing of Gold layer analytics solution in QA environment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: QA\n- Type: QA Validation",
+        "acceptance_criteria": [
+          "End-to-end testing is completed in QA",
+          "Analytics validation checks pass in QA",
+          "Performance testing meets SLA requirements",
+          "Integration testing with BI/reporting tools is completed",
+          "QA sign-off is obtained",
+          "Bug fixes (if any) are implemented and verified"
+        ],
+        "tags": ["gold", "qa", "validation"]
+      },
+      {
+        "id": "GD-PROD",
+        "title": "[{SOURCE}] Gold - Promote to Prod",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to promote {SOURCE} Gold layer solution to Production environment.\n\n## Overview\nDeploy Gold layer analytics solution to Production following change management.\n\n## Technical Details\n- Source System: {SOURCE}\n- Source Environment: QA\n- Target Environment: PROD\n- Layer: Gold (Business/Analytics)",
+        "acceptance_criteria": [
+          "Change request is submitted and approved",
+          "Production deployment checklist is completed",
+          "Rollback plan is documented and tested",
+          "CI/CD pipeline deploys to PROD successfully",
+          "Production configurations are applied",
+          "Post-deployment smoke tests pass",
+          "Monitoring and alerting are configured"
+        ],
+        "tags": ["gold", "prod", "deployment"]
+      },
+      {
+        "id": "GD-PROD-VAL",
+        "title": "[{SOURCE}] Gold - Validate Prod Results",
+        "type": "User Story",
+        "owner": "Data Engineer",
+        "description": "As a Data Engineer, I need to validate {SOURCE} Gold layer results in Production environment.\n\n## Overview\nExecute validation of Gold layer analytics solution in Production and confirm successful deployment.\n\n## Technical Details\n- Source System: {SOURCE}\n- Target Environment: PROD\n- Type: Production Validation",
+        "acceptance_criteria": [
+          "Production analytics validation passes",
+          "KPI and metric accuracy is verified",
+          "Pipeline runs successfully on schedule",
+          "Monitoring dashboards show healthy metrics",
+          "No critical alerts triggered post-deployment",
+          "Business stakeholders confirm analytics availability",
+          "Production deployment is documented and closed"
+        ],
+        "tags": ["gold", "prod", "validation"]
+      }
+    ]
+  }
+}
