@@ -15,9 +15,18 @@ import streamlit as st
 from generate_tickets import (
     load_ticket_config,
     generate_all_tickets,
+    generate_ticket,
     DEFAULT_CONFIG_FILE,
     ROLES,
 )
+from llm_ticket_generator import PMLLMTicketGenerator, DEFAULT_MODEL_ID
+
+
+@st.cache_resource(show_spinner="Loading ProjectManagementLLM (first run downloads the model)...")
+def get_llm() -> PMLLMTicketGenerator:
+    llm = PMLLMTicketGenerator()
+    llm._ensure_loaded()
+    return llm
 
 TIER_TO_STEP = {"bronze": 3, "silver": 4, "gold": 5}
 
@@ -64,11 +73,14 @@ with st.sidebar:
         help="Filters Bronze/Silver/Gold steps for the Data Engineer role. Ignored for other roles.",
     )
 
-    st.markdown("**Config**")
-    uploaded_config = st.file_uploader(
-        "Custom tickets_config.json (optional)",
-        type=["json"],
-        help="Leave empty to use the bundled default config.",
+    st.markdown("**AI extensions**")
+    use_llm = st.checkbox(
+        "Generate extra tickets from a prompt (LLM)",
+        value=False,
+        help=(
+            f"Uses the free Hugging Face model `{DEFAULT_MODEL_ID}`. "
+            "First run downloads the model (may take a while)."
+        ),
     )
 
 st.subheader("Custom Instructions")
@@ -87,6 +99,25 @@ custom_instructions = st.text_area(
     ),
 )
 
+llm_prompt = ""
+if use_llm:
+    st.subheader("AI Ticket Prompt")
+    st.caption(
+        f"Free-form prompt sent to `{DEFAULT_MODEL_ID}` to generate additional tickets. "
+        "Placeholders `{SOURCE}` and `{ENV}` are substituted after generation."
+    )
+    llm_prompt = st.text_area(
+        "Describe the extra tickets you want",
+        height=160,
+        placeholder=(
+            "Example:\n"
+            "Generate 3 extra tickets for {SOURCE} covering:\n"
+            "- Disaster recovery drill in {ENV}\n"
+            "- GDPR data-subject-access-request workflow\n"
+            "- On-call runbook for pipeline failures"
+        ),
+    )
+
 generate = st.button("Generate tickets", type="primary")
 
 if generate:
@@ -101,13 +132,7 @@ if generate:
         st.stop()
 
     try:
-        if uploaded_config is not None:
-            config = json.loads(uploaded_config.getvalue().decode("utf-8"))
-        else:
-            config = load_ticket_config(DEFAULT_CONFIG_FILE)
-    except json.JSONDecodeError as e:
-        st.error(f"Invalid JSON in uploaded config: {e}")
-        st.stop()
+        config = load_ticket_config(DEFAULT_CONFIG_FILE)
     except FileNotFoundError:
         st.error(f"Default config not found at {DEFAULT_CONFIG_FILE}.")
         st.stop()
@@ -124,6 +149,30 @@ if generate:
         custom_instructions=custom_instructions or None,
         roles=selected_roles,
     )
+
+    if use_llm and llm_prompt.strip():
+        try:
+            llm = get_llm()
+            primary_role_label = ROLES[selected_roles[0]]["label"] if selected_roles else "Data Engineer"
+            existing_titles = [t["title"] for t in tickets]
+            ai_configs = llm.generate_ticket_configs(
+                prompt=llm_prompt,
+                source=source,
+                env=env,
+                role_label=primary_role_label,
+                existing_titles=existing_titles,
+            )
+            for idx, tc in enumerate(ai_configs, 1):
+                t = generate_ticket(tc, source, env, 99, idx, custom_instructions or None)
+                t["role"] = "ai_suggested"
+                t["role_label"] = "AI-Suggested"
+                t["step_label"] = "AI-Generated Additions"
+                t["tier"] = None
+                tickets.append(t)
+            if ai_configs:
+                st.info(f"LLM added {len(ai_configs)} ticket(s).")
+        except Exception as e:
+            st.warning(f"LLM ticket generation failed: {e}")
 
     if not tickets:
         st.warning("No tickets matched the selected steps/tiers.")
