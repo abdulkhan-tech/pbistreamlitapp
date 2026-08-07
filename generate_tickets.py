@@ -106,71 +106,154 @@ def generate_ticket(ticket_config: Dict[str, Any], source: str, env: str,
     }
 
 
-def generate_all_tickets(config: Dict[str, Any], source: str, env: str, 
+# Role registry. Each role has:
+#   label       — human-friendly name
+#   step_labels — {step_number: label}
+#   step_source — "top_level" (keys live at config root, e.g. step_1_source_discovery)
+#                 or "roles"  (keys live under config["roles"][role_id])
+#   step_keys   — {step_number: key_in_config}
+#   tier_map    — {step_number: "bronze"|"silver"|"gold"} (optional, DE only today)
+ROLES: Dict[str, Dict[str, Any]] = {
+    "data_engineer": {
+        "label": "Data Engineer",
+        "step_source": "top_level",
+        "step_labels": {
+            1: "Source Discovery",
+            2: "Platform Setup",
+            3: "Bronze Ingestion",
+            4: "Silver Core",
+            5: "Gold Analytics",
+        },
+        "step_keys": {
+            1: "step_1_source_discovery",
+            2: "step_2_platform_setup",
+            3: "step_3_bronze_ingestion",
+            4: "step_4_silver_core",
+            5: "step_5_gold_analytics",
+        },
+        "tier_map": {3: "bronze", 4: "silver", 5: "gold"},
+    },
+    "developer": {
+        "label": "Developer",
+        "step_source": "roles",
+        "step_labels": {
+            1: "Requirements & Technical Design",
+            2: "Environment & Repository Setup",
+            3: "Implementation",
+            4: "Testing (Unit, Integration, QA)",
+            5: "Deployment & Handover",
+        },
+        "step_keys": {1: "step_1", 2: "step_2", 3: "step_3", 4: "step_4", 5: "step_5"},
+        "tier_map": {},
+    },
+    "reports_powerbi": {
+        "label": "Reports - Power BI",
+        "step_source": "roles",
+        "step_labels": {
+            1: "Reporting Requirements & KPI Definition",
+            2: "Data Source Connection & Semantic Model",
+            3: "Report & Dashboard Development",
+            4: "Testing & UAT",
+            5: "Publish, Security & Handover",
+        },
+        "step_keys": {1: "step_1", 2: "step_2", 3: "step_3", 4: "step_4", 5: "step_5"},
+        "tier_map": {},
+    },
+    "uiux": {
+        "label": "UI/UX Team",
+        "step_source": "roles",
+        "step_labels": {
+            1: "Discovery & User Research",
+            2: "Information Architecture & Wireframes",
+            3: "Visual Design & Interactive Prototype",
+            4: "Usability Testing & Iteration",
+            5: "Design Handoff & QA Support",
+        },
+        "step_keys": {1: "step_1", 2: "step_2", 3: "step_3", 4: "step_4", 5: "step_5"},
+        "tier_map": {},
+    },
+}
+
+
+def _get_step_config(config: Dict[str, Any], role_id: str, step_num: int) -> Optional[Dict[str, Any]]:
+    """Return the step block for a role from the loaded config, or None if missing."""
+    role = ROLES.get(role_id)
+    if not role:
+        return None
+    key = role["step_keys"].get(step_num)
+    if not key:
+        return None
+    if role["step_source"] == "top_level":
+        return config.get(key)
+    return config.get("roles", {}).get(role_id, {}).get(key)
+
+
+def generate_all_tickets(config: Dict[str, Any], source: str, env: str,
                          steps: Optional[List[int]] = None,
                          tiers: Optional[List[str]] = None,
-                         custom_instructions: Optional[str] = None) -> List[Dict[str, Any]]:
+                         custom_instructions: Optional[str] = None,
+                         roles: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     """Generate all tickets from configuration.
-    
+
     Args:
         config: Ticket configuration dictionary
         source: Source system name
         env: Environment (DEV, QA, PROD)
         steps: List of steps to generate (1-5). If None, generates based on tiers.
-        tiers: List of medallion tiers (bronze, silver, gold). If None, generates all.
+        tiers: List of medallion tiers (bronze, silver, gold). Only applies to the
+               data_engineer role. If None, generates all.
+        custom_instructions: Optional text appended to every ticket description.
+        roles: List of role IDs to generate for. Defaults to ["data_engineer"] for
+               backward compatibility.
     """
+
+    if not roles:
+        roles = ["data_engineer"]
+
+    all_tickets: List[Dict[str, Any]] = []
+
+    for role_id in roles:
+        role = ROLES.get(role_id)
+        if not role:
+            continue
+
+        tier_map = role.get("tier_map") or {}
+        role_step_numbers = sorted(role["step_keys"].keys())
     
-    all_tickets = []
-    
-    # Step mapping with tier association
-    step_mapping = {
-        1: {"key": "step_1_source_discovery", "tier": None},      # Pre-tier (always included unless filtered by steps)
-        2: {"key": "step_2_platform_setup", "tier": None},        # Pre-tier (always included unless filtered by steps)
-        3: {"key": "step_3_bronze_ingestion", "tier": "bronze"},
-        4: {"key": "step_4_silver_core", "tier": "silver"},
-        5: {"key": "step_5_gold_analytics", "tier": "gold"}
-    }
-    
-    # Determine which steps to include based on tiers and steps arguments
-    steps_to_include = []
-    
-    if steps is not None:
-        # If steps are explicitly provided, use them directly
-        steps_to_include = steps
-    elif tiers is not None:
-        # If only tiers are provided, include pre-tier steps (1, 2) plus tier-specific steps
-        steps_to_include = [1, 2]  # Always include discovery and platform setup
-        tier_to_step = {"bronze": 3, "silver": 4, "gold": 5}
-        for tier in tiers:
-            if tier.lower() in tier_to_step:
-                steps_to_include.append(tier_to_step[tier.lower()])
-        steps_to_include = sorted(set(steps_to_include))
-    else:
-        # Default to all steps
-        steps_to_include = [1, 2, 3, 4, 5]
-    
-    # If both steps and tiers are provided, filter steps by tiers
-    if steps is not None and tiers is not None:
-        filtered_steps = []
-        for step_num in steps:
-            step_info = step_mapping.get(step_num)
-            if step_info:
-                step_tier = step_info["tier"]
-                # Include if step has no tier (pre-tier steps) or tier is in the requested tiers
-                if step_tier is None or step_tier.lower() in [t.lower() for t in tiers]:
-                    filtered_steps.append(step_num)
-        steps_to_include = filtered_steps
-    
-    for step_num in steps_to_include:
-        step_info = step_mapping.get(step_num)
-        if step_info and step_info["key"] in config:
-            step_config = config[step_info["key"]]
+        # Determine which steps to include based on tiers and steps arguments
+        if steps is not None:
+            steps_to_include = [s for s in steps if s in role_step_numbers]
+        elif tiers is not None and tier_map:
+            steps_to_include = [1, 2] if 1 in role_step_numbers and 2 in role_step_numbers else []
+            step_by_tier = {v: k for k, v in tier_map.items()}
+            for tier in tiers:
+                st = step_by_tier.get(tier.lower())
+                if st is not None:
+                    steps_to_include.append(st)
+            steps_to_include = sorted(set(steps_to_include))
+        else:
+            steps_to_include = list(role_step_numbers)
+
+        # Apply tier filter on top of explicit steps (data_engineer only)
+        if steps is not None and tiers is not None and tier_map:
+            tiers_lower = {t.lower() for t in tiers}
+            steps_to_include = [
+                s for s in steps_to_include
+                if s not in tier_map or tier_map[s] in tiers_lower
+            ]
+
+        for step_num in steps_to_include:
+            step_config = _get_step_config(config, role_id, step_num)
+            if not step_config:
+                continue
             for idx, ticket_config in enumerate(step_config.get("tickets", []), 1):
                 ticket = generate_ticket(ticket_config, source, env, step_num, idx, custom_instructions)
-                # Add tier information to ticket
-                ticket["tier"] = step_info["tier"]
+                ticket["tier"] = tier_map.get(step_num)
+                ticket["role"] = role_id
+                ticket["role_label"] = role["label"]
+                ticket["step_label"] = role["step_labels"].get(step_num, f"Step {step_num}")
                 all_tickets.append(ticket)
-    
+
     return all_tickets
 
 
@@ -198,22 +281,24 @@ def output_as_csv(tickets: List[Dict[str, Any]], output_path: Optional[str] = No
         return
     
     fieldnames = [
-        "Work Item Type", "Title", "Owner", "Description", "Tags", 
-        "Acceptance Criteria", "Source", "Environment", "Step", "Tier"
+        "Work Item Type", "Title", "Owner", "Role", "Description", "Tags",
+        "Acceptance Criteria", "Source", "Environment", "Step", "Step Name", "Tier"
     ]
-    
+
     rows = []
     for ticket in tickets:
         rows.append({
             "Work Item Type": ticket["type"],
             "Title": ticket["title"],
             "Owner": ticket.get("owner", "Data Engineer"),
+            "Role": ticket.get("role_label", "Data Engineer"),
             "Description": ticket["description"],
             "Tags": "; ".join(ticket["tags"]),
             "Acceptance Criteria": ticket["acceptance_criteria_formatted"],
             "Source": ticket["source"],
             "Environment": ticket["environment"],
             "Step": ticket["step"],
+            "Step Name": ticket.get("step_label", ""),
             "Tier": ticket.get("tier", "N/A") or "N/A"
         })
     
@@ -246,18 +331,19 @@ def output_as_markdown(tickets: List[Dict[str, Any]], output_path: Optional[str]
         f""
     ]
     
+    current_role = None
     current_step = None
-    step_names = {
-        1: "Step 1: Source Discovery",
-        2: "Step 2: Platform Setup/Sprint Zero",
-        3: "Step 3: Bronze Ingestion",
-        4: "Step 4: Silver Core Development"
-    }
-    
     for ticket in tickets:
+        role_label = ticket.get("role_label", "Data Engineer")
+        if role_label != current_role:
+            current_role = role_label
+            current_step = None
+            lines.append(f"# Role: {role_label}")
+            lines.append("")
         if ticket["step"] != current_step:
             current_step = ticket["step"]
-            lines.append(f"## {step_names.get(current_step, f'Step {current_step}')}")
+            step_label = ticket.get("step_label", f"Step {current_step}")
+            lines.append(f"## Step {current_step}: {step_label}")
             lines.append("")
         
         lines.append(f"### {ticket['ticket_id']}: {ticket['title']}")
@@ -390,6 +476,21 @@ Examples:
     )
     
     parser.add_argument(
+        "--role", "-r",
+        help=(
+            "Comma-separated roles to generate for. Options: "
+            + ", ".join(ROLES.keys())
+            + ". Defaults to data_engineer."
+        ),
+    )
+
+    parser.add_argument(
+        "--list-roles",
+        action="store_true",
+        help="List available roles and their steps, then exit.",
+    )
+
+    parser.add_argument(
         "--tier", "-t",
         help="Comma-separated medallion tiers to generate (bronze, silver, gold). If not provided, generates all tiers."
     )
@@ -456,6 +557,23 @@ Examples:
             print("Error: Steps must be numbers (e.g., 1 or 1,2,3,4,5)")
             sys.exit(1)
     
+    # Parse roles if provided
+    roles_list: Optional[List[str]] = None
+    if args.list_roles:
+        print("\n👥 Available Roles:\n")
+        for rid, r in ROLES.items():
+            print(f"  • {rid}  —  {r['label']}")
+            for sn in sorted(r["step_labels"]):
+                print(f"      Step {sn}: {r['step_labels'][sn]}")
+        print()
+        return
+    if args.role:
+        roles_list = [x.strip().lower() for x in args.role.split(",") if x.strip()]
+        invalid_roles = [x for x in roles_list if x not in ROLES]
+        if invalid_roles:
+            print(f"Error: Invalid roles: {invalid_roles}. Valid: {list(ROLES.keys())}")
+            sys.exit(1)
+
     # Parse tiers if provided
     tiers = None
     if args.tier:
@@ -474,7 +592,9 @@ Examples:
         else:
             custom_instructions = args.instructions
 
-    tickets = generate_all_tickets(config, args.source, args.env, steps, tiers, custom_instructions)
+    tickets = generate_all_tickets(
+        config, args.source, args.env, steps, tiers, custom_instructions, roles_list
+    )
     
     if not tickets:
         print("No tickets generated. Check your configuration and step selection.")

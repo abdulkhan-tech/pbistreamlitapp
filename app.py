@@ -16,15 +16,8 @@ from generate_tickets import (
     load_ticket_config,
     generate_all_tickets,
     DEFAULT_CONFIG_FILE,
+    ROLES,
 )
-
-STEP_LABELS = {
-    1: "Step 1 — Source Discovery",
-    2: "Step 2 — Platform Setup",
-    3: "Step 3 — Bronze Ingestion",
-    4: "Step 4 — Silver Core",
-    5: "Step 5 — Gold Analytics",
-}
 
 TIER_TO_STEP = {"bronze": 3, "silver": 4, "gold": 5}
 
@@ -40,18 +33,35 @@ with st.sidebar:
     source = st.text_input("Source system", value="CTRAX", help="e.g. CTRAX, Artiva, Casemix, ESL").strip()
     env = st.selectbox("Environment", ["DEV", "QA", "PROD"], index=0)
 
+    st.markdown("**Roles**")
+    selected_roles = st.multiselect(
+        "Roles to generate tickets for",
+        options=list(ROLES.keys()),
+        default=["data_engineer"],
+        format_func=lambda r: ROLES[r]["label"],
+        help="Each role has its own set of industry-standard steps.",
+    )
+
     st.markdown("**Scope**")
     selected_steps = st.multiselect(
-        "Steps to include",
+        "Steps to include (1-5, applied per role)",
         options=[1, 2, 3, 4, 5],
         default=[1, 2, 3, 4, 5],
-        format_func=lambda s: STEP_LABELS[s],
+        format_func=lambda s: f"Step {s}",
+        help="Step numbering is per role; see role step names below.",
     )
+    if selected_roles:
+        with st.expander("Step names by role", expanded=False):
+            for rid in selected_roles:
+                r = ROLES[rid]
+                st.markdown(f"**{r['label']}**")
+                for sn in sorted(r["step_labels"]):
+                    st.markdown(f"- Step {sn}: {r['step_labels'][sn]}")
     selected_tiers = st.multiselect(
-        "Medallion tiers (optional filter)",
+        "Medallion tiers (Data Engineer only)",
         options=["bronze", "silver", "gold"],
         default=[],
-        help="If set, restricts tier-specific steps to only these tiers.",
+        help="Filters Bronze/Silver/Gold steps for the Data Engineer role. Ignored for other roles.",
     )
 
     st.markdown("**Config**")
@@ -83,6 +93,9 @@ if generate:
     if not source:
         st.error("Source is required.")
         st.stop()
+    if not selected_roles:
+        st.error("Select at least one role.")
+        st.stop()
     if not selected_steps and not selected_tiers:
         st.error("Select at least one step or tier.")
         st.stop()
@@ -109,6 +122,7 @@ if generate:
         steps=steps_arg,
         tiers=tiers_arg,
         custom_instructions=custom_instructions or None,
+        roles=selected_roles,
     )
 
     if not tickets:
@@ -117,12 +131,14 @@ if generate:
 
     st.success(f"Generated {len(tickets)} ticket(s).")
 
-    counts = {}
+    role_counts: dict = {}
     for t in tickets:
-        counts[t["step"]] = counts.get(t["step"], 0) + 1
-    cols = st.columns(len(counts) or 1)
-    for col, step_num in zip(cols, sorted(counts)):
-        col.metric(STEP_LABELS.get(step_num, f"Step {step_num}"), counts[step_num])
+        role_counts[t.get("role_label", "Data Engineer")] = (
+            role_counts.get(t.get("role_label", "Data Engineer"), 0) + 1
+        )
+    cols = st.columns(len(role_counts) or 1)
+    for col, role_label in zip(cols, role_counts):
+        col.metric(role_label, role_counts[role_label])
 
     json_bytes = json.dumps(
         {"generated_at": datetime.now().isoformat(), "total_tickets": len(tickets), "tickets": tickets},
@@ -131,8 +147,8 @@ if generate:
 
     csv_buf = io.StringIO()
     fieldnames = [
-        "Work Item Type", "Title", "Owner", "Description", "Tags",
-        "Acceptance Criteria", "Source", "Environment", "Step", "Tier",
+        "Work Item Type", "Title", "Owner", "Role", "Description", "Tags",
+        "Acceptance Criteria", "Source", "Environment", "Step", "Step Name", "Tier",
     ]
     writer = csv.DictWriter(csv_buf, fieldnames=fieldnames)
     writer.writeheader()
@@ -141,12 +157,14 @@ if generate:
             "Work Item Type": t["type"],
             "Title": t["title"],
             "Owner": t.get("owner", "Data Engineer"),
+            "Role": t.get("role_label", "Data Engineer"),
             "Description": t["description"],
             "Tags": "; ".join(t["tags"]),
             "Acceptance Criteria": t["acceptance_criteria_formatted"],
             "Source": t["source"],
             "Environment": t["environment"],
             "Step": t["step"],
+            "Step Name": t.get("step_label", ""),
             "Tier": t.get("tier") or "N/A",
         })
     csv_bytes = csv_buf.getvalue().encode("utf-8")
@@ -160,16 +178,24 @@ if generate:
         "---",
         "",
     ]
+    current_role = None
     current_step = None
     for t in tickets:
+        role_label = t.get("role_label", "Data Engineer")
+        if role_label != current_role:
+            current_role = role_label
+            current_step = None
+            md_lines += [f"# Role: {role_label}", ""]
         if t["step"] != current_step:
             current_step = t["step"]
-            md_lines += [f"## {STEP_LABELS.get(current_step, f'Step {current_step}')}", ""]
+            step_label = t.get("step_label", f"Step {current_step}")
+            md_lines += [f"## Step {current_step}: {step_label}", ""]
         md_lines += [
             f"### {t['ticket_id']}: {t['title']}",
             "",
             f"**Type:** {t['type']}  ",
             f"**Owner:** {t.get('owner', 'Data Engineer')}  ",
+            f"**Role:** {role_label}  ",
             f"**Tags:** {', '.join(t['tags'])}",
             "",
             t["description"],
@@ -186,9 +212,19 @@ if generate:
     dcols[2].download_button("Download Markdown", md_bytes, file_name=f"{base}.md", mime="text/markdown")
 
     st.subheader("Preview")
+    current_role = None
     for t in tickets:
-        with st.expander(f"{t['ticket_id']} — {t['title']}"):
-            st.markdown(f"**Owner:** {t.get('owner', 'Data Engineer')}  |  **Tags:** {', '.join(t['tags'])}")
+        role_label = t.get("role_label", "Data Engineer")
+        if role_label != current_role:
+            current_role = role_label
+            st.markdown(f"### {role_label}")
+        step_label = t.get("step_label", f"Step {t['step']}")
+        with st.expander(f"[Step {t['step']} — {step_label}] {t['ticket_id']} — {t['title']}"):
+            st.markdown(
+                f"**Owner:** {t.get('owner', 'Data Engineer')}  |  "
+                f"**Role:** {role_label}  |  "
+                f"**Tags:** {', '.join(t['tags'])}"
+            )
             st.markdown(t["description"])
 else:
     st.info("Fill in the sidebar and click **Generate tickets**.")

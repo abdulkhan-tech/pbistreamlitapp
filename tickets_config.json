@@ -864,5 +864,485 @@
         "tags": ["gold", "prod", "validation"]
       }
     ]
+  },
+  "roles": {
+    "developer": {
+      "label": "Developer",
+      "step_1": {
+        "title": "Requirements & Technical Design",
+        "tickets": [
+          {
+            "id": "DEV-REQ",
+            "title": "[{SOURCE}] Dev - Requirements Analysis & User Stories",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need to translate business requirements for {SOURCE} into concrete, estimable user stories with clear acceptance criteria for delivery in {ENV}.\n\n## Scope\n- Review functional and non-functional requirements with the Product Owner\n- Break epics into user stories with INVEST criteria\n- Identify integration points, external dependencies, and NFRs (perf, security, accessibility)\n- Confirm definition of ready (DoR) and definition of done (DoD)",
+            "acceptance_criteria": [
+              "All user stories are documented with acceptance criteria and story points",
+              "Non-functional requirements (performance, security, availability) are captured",
+              "Dependencies on other teams/systems are identified and tracked",
+              "Product Owner has signed off on the story backlog",
+              "Definition of Ready is met for stories entering the next sprint"
+            ],
+            "tags": ["dev", "requirements", "planning"]
+          },
+          {
+            "id": "DEV-DESIGN",
+            "title": "[{SOURCE}] Dev - Technical Design & Architecture Review",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need to produce a technical design for the {SOURCE} solution targeting {ENV}, aligned with the organization's architecture standards.\n\n## Scope\n- High-level architecture diagram (C4 Context + Container)\n- API contracts and data models\n- Sequence diagrams for critical flows\n- Security review (authN/authZ, secrets, PII handling)\n- Architecture Decision Records (ADRs) for key choices",
+            "acceptance_criteria": [
+              "Architecture diagram is reviewed and approved by tech lead / architect",
+              "API contracts (OpenAPI/GraphQL schema) are drafted and versioned",
+              "Data model / ERD is defined and reviewed",
+              "ADRs are written for each significant decision and merged to the repo",
+              "Security review is completed and any findings are logged",
+              "Estimated effort is refined based on the design"
+            ],
+            "tags": ["dev", "design", "architecture"]
+          }
+        ]
+      },
+      "step_2": {
+        "title": "Environment & Repository Setup",
+        "tickets": [
+          {
+            "id": "DEV-SETUP",
+            "title": "[{SOURCE}] Dev - Repo, CI/CD & Local Environment Setup",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need a fully configured repository, CI/CD pipeline, and reproducible local dev environment for the {SOURCE} project in {ENV}.\n\n## Scope\n- GitHub repo with branch protection and PR templates\n- CI pipeline: lint, unit tests, build, security scan (SAST/dependency scan)\n- CD pipeline to {ENV} with approval gates\n- Local dev via devcontainer / docker-compose\n- Secrets management via Key Vault / .env template",
+            "acceptance_criteria": [
+              "Repository is created with branch protection on main and required reviewers",
+              "CI runs lint, unit tests, and security scans on every PR and blocks on failure",
+              "CD deploys to {ENV} automatically from the main branch",
+              "A new developer can clone the repo and run the app locally in under 30 minutes",
+              "Secrets are stored in Key Vault; no secrets are committed to the repo",
+              "README documents setup, run, test, and deploy steps"
+            ],
+            "tags": ["dev", "setup", "ci-cd"]
+          }
+        ]
+      },
+      "step_3": {
+        "title": "Implementation",
+        "tickets": [
+          {
+            "id": "DEV-BE",
+            "title": "[{SOURCE}] Dev - Backend / API Implementation",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need to implement the backend services and APIs for {SOURCE} in {ENV} according to the approved technical design.\n\n## Scope\n- REST/GraphQL endpoints per API contract\n- Business logic, validation, error handling\n- Persistence layer and migrations\n- Logging, metrics, and structured errors\n- AuthN/authZ integration",
+            "acceptance_criteria": [
+              "All endpoints from the API contract are implemented and return correct responses",
+              "Input validation and error handling follow the agreed error model",
+              "Database migrations are versioned and run cleanly in {ENV}",
+              "Structured logs and metrics are emitted for key operations",
+              "Code is peer-reviewed and merged to main via PR"
+            ],
+            "tags": ["dev", "backend", "api"]
+          },
+          {
+            "id": "DEV-FE",
+            "title": "[{SOURCE}] Dev - Frontend Implementation",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need to implement the frontend for {SOURCE} in {ENV} using the approved designs and component library.\n\n## Scope\n- Screens per approved wireframes/designs\n- State management, form handling, and API integration\n- Responsive layout and accessibility (WCAG 2.1 AA)\n- Error/empty/loading states",
+            "acceptance_criteria": [
+              "All screens match the approved designs (design QA sign-off)",
+              "Frontend is responsive across target breakpoints",
+              "Accessibility checks pass at WCAG 2.1 AA",
+              "API integration handles success, error, empty, and loading states",
+              "Code is peer-reviewed and merged to main via PR"
+            ],
+            "tags": ["dev", "frontend", "ui"]
+          }
+        ]
+      },
+      "step_4": {
+        "title": "Testing (Unit, Integration, QA)",
+        "tickets": [
+          {
+            "id": "DEV-UT",
+            "title": "[{SOURCE}] Dev - Unit & Integration Test Coverage",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need automated unit and integration tests for {SOURCE} to ensure regressions are caught before reaching QA.\n\n## Scope\n- Unit tests for business logic and utilities\n- Integration tests for API endpoints and DB layer\n- Contract tests where the service is consumed by others\n- Coverage reporting in CI",
+            "acceptance_criteria": [
+              "Unit test coverage meets the team threshold (e.g., >=80% on new code)",
+              "Integration tests cover happy path and key failure modes for each endpoint",
+              "Contract tests are green for all consumers",
+              "Coverage report is published as a CI artifact and visible on PRs"
+            ],
+            "tags": ["dev", "testing", "quality"]
+          },
+          {
+            "id": "DEV-QA",
+            "title": "[{SOURCE}] Dev - QA / E2E Testing & Bug Fixing",
+            "type": "User Story",
+            "owner": "QA Engineer",
+            "description": "As a QA Engineer, I need to execute end-to-end tests against {SOURCE} in {ENV} and drive defects to closure before release.\n\n## Scope\n- E2E test suite (Playwright/Cypress) for critical user journeys\n- Manual exploratory testing sessions\n- Performance smoke test\n- Defect triage and re-test",
+            "acceptance_criteria": [
+              "All critical user journeys have automated E2E tests and are green in {ENV}",
+              "Exploratory test session notes are attached to the ticket",
+              "Performance smoke test meets agreed SLOs",
+              "All Sev-1/Sev-2 defects are closed; Sev-3/4 are triaged and scheduled"
+            ],
+            "tags": ["dev", "qa", "e2e"]
+          }
+        ]
+      },
+      "step_5": {
+        "title": "Deployment & Handover",
+        "tickets": [
+          {
+            "id": "DEV-REL",
+            "title": "[{SOURCE}] Dev - Release, Deployment & Rollback Plan",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need to release {SOURCE} to {ENV} with a documented rollout and rollback plan.\n\n## Scope\n- Change ticket / CAB approval (if required)\n- Release notes\n- Rollout plan (blue/green, canary, feature flag)\n- Rollback procedure and validation checks",
+            "acceptance_criteria": [
+              "Change ticket is approved (where required) for {ENV} deployment",
+              "Release notes are published to stakeholders",
+              "Rollout strategy is executed and monitored",
+              "Rollback procedure has been rehearsed and documented",
+              "Post-deployment smoke tests pass in {ENV}"
+            ],
+            "tags": ["dev", "release", "deployment"]
+          },
+          {
+            "id": "DEV-HANDOVER",
+            "title": "[{SOURCE}] Dev - Documentation & Support Handover",
+            "type": "User Story",
+            "owner": "Developer",
+            "description": "As a Developer, I need to hand over {SOURCE} to the support/operations team with complete runbooks and monitoring.\n\n## Scope\n- Runbook (common ops, alerts, escalation)\n- Monitoring dashboards and alerting thresholds\n- On-call rotation onboarding\n- KT session with support team",
+            "acceptance_criteria": [
+              "Runbook is published and reviewed with the support team",
+              "Dashboards and alerts are live in {ENV} and linked from the runbook",
+              "Support team has completed KT and signed off on ownership",
+              "Post-implementation review is scheduled"
+            ],
+            "tags": ["dev", "handover", "support"]
+          }
+        ]
+      }
+    },
+    "reports_powerbi": {
+      "label": "Reports - Power BI",
+      "step_1": {
+        "title": "Reporting Requirements & KPI Definition",
+        "tickets": [
+          {
+            "id": "PBI-REQ",
+            "title": "[{SOURCE}] PBI - Reporting Requirements & Stakeholder Interviews",
+            "type": "User Story",
+            "owner": "BI Analyst",
+            "description": "As a BI Analyst, I need to gather reporting requirements for {SOURCE} in {ENV} through stakeholder interviews and existing-report analysis.\n\n## Scope\n- Interview business stakeholders and end users\n- Inventory existing reports being replaced or augmented\n- Capture required dimensions, filters, drill paths, and export needs\n- Confirm data refresh cadence and SLAs",
+            "acceptance_criteria": [
+              "Stakeholder interviews are completed and notes are documented",
+              "Report inventory is captured with fields, filters, and audience",
+              "Required refresh cadence and SLAs are documented and agreed",
+              "Business sign-off is obtained on the requirements document"
+            ],
+            "tags": ["powerbi", "requirements", "reporting"]
+          },
+          {
+            "id": "PBI-KPI",
+            "title": "[{SOURCE}] PBI - KPI Definitions & Measure Catalog",
+            "type": "User Story",
+            "owner": "BI Analyst",
+            "description": "As a BI Analyst, I need approved definitions for every KPI and measure that will appear in the {SOURCE} reports for {ENV}.\n\n## Scope\n- KPI dictionary with business definition, formula, grain, and owner\n- Data-lineage mapping from KPI to source columns\n- Naming standards (DAX measures, columns, tables)\n- Sign-off from data steward / business owner",
+            "acceptance_criteria": [
+              "Every KPI has an approved business definition and formula",
+              "Grain, unit, and format are specified for each measure",
+              "Data lineage from KPI to Gold-layer sources is documented",
+              "Naming conventions are agreed and added to the team standards",
+              "Data steward has signed off on the KPI catalog"
+            ],
+            "tags": ["powerbi", "kpi", "definitions"]
+          }
+        ]
+      },
+      "step_2": {
+        "title": "Data Source Connection & Semantic Model",
+        "tickets": [
+          {
+            "id": "PBI-MODEL",
+            "title": "[{SOURCE}] PBI - Semantic Model & Data Connectivity",
+            "type": "User Story",
+            "owner": "BI Developer",
+            "description": "As a BI Developer, I need to build a governed semantic model over {SOURCE} data in {ENV} that powers all downstream reports.\n\n## Scope\n- Connect to Gold layer / warehouse via approved gateway or DirectQuery\n- Model as star schema (facts + conformed dimensions)\n- Row-level security (RLS) roles\n- Base DAX measures and time-intelligence\n- Incremental refresh policy",
+            "acceptance_criteria": [
+              "Data connection uses approved gateway/credentials; no personal accounts",
+              "Model follows star schema with clearly named facts and dimensions",
+              "RLS roles are defined and tested for at least one persona per role",
+              "Base measures follow the KPI catalog and pass validation vs source",
+              "Incremental refresh is configured and completes within the SLA window",
+              "Model is deployed to the {ENV} workspace with correct sensitivity label"
+            ],
+            "tags": ["powerbi", "semantic-model", "dax"]
+          }
+        ]
+      },
+      "step_3": {
+        "title": "Report & Dashboard Development",
+        "tickets": [
+          {
+            "id": "PBI-REPORT",
+            "title": "[{SOURCE}] PBI - Report & Dashboard Build",
+            "type": "User Story",
+            "owner": "BI Developer",
+            "description": "As a BI Developer, I need to build the {SOURCE} reports and dashboards in {ENV} against the approved semantic model.\n\n## Scope\n- Pages per approved wireframes\n- Visuals bound to certified measures only\n- Filters, slicers, drill-through, bookmarks\n- Consistent theme / corporate branding\n- Accessibility (alt text, tab order, color contrast)",
+            "acceptance_criteria": [
+              "All pages match the approved wireframes and use the corporate theme",
+              "Every visual uses a certified measure from the semantic model",
+              "Drill-through, slicers, and bookmarks work as specified",
+              "Report meets accessibility guidelines (alt text, contrast, tab order)",
+              "Peer review of the .pbip / .pbix is completed and signed off"
+            ],
+            "tags": ["powerbi", "report", "dashboard"]
+          },
+          {
+            "id": "PBI-PERF",
+            "title": "[{SOURCE}] PBI - Performance Tuning & Optimization",
+            "type": "User Story",
+            "owner": "BI Developer",
+            "description": "As a BI Developer, I need the {SOURCE} report to open and interact within agreed performance targets in {ENV}.\n\n## Scope\n- Performance Analyzer profiling\n- DAX Studio review of slow measures and storage-engine vs formula-engine time\n- Model reductions (unused columns, high-cardinality columns)\n- Aggregations / composite model where warranted",
+            "acceptance_criteria": [
+              "Initial page load is under the agreed threshold (e.g., 5 seconds)",
+              "No visual takes more than the agreed slice of total render time",
+              "High-cardinality and unused columns are removed or hidden",
+              "Aggregations are added where they materially improve performance",
+              "Performance findings and fixes are documented in the ticket"
+            ],
+            "tags": ["powerbi", "performance", "optimization"]
+          }
+        ]
+      },
+      "step_4": {
+        "title": "Testing & UAT",
+        "tickets": [
+          {
+            "id": "PBI-DATAVAL",
+            "title": "[{SOURCE}] PBI - Data Validation & Reconciliation",
+            "type": "User Story",
+            "owner": "BI Analyst",
+            "description": "As a BI Analyst, I need to reconcile every KPI on the {SOURCE} report against the source-of-truth in {ENV}.\n\n## Scope\n- Reconciliation tests per KPI (report vs Gold vs source)\n- Row/column count checks\n- Edge cases (nulls, negatives, date boundaries)\n- Sign-off from data steward",
+            "acceptance_criteria": [
+              "Reconciliation is documented for every KPI with tolerance thresholds",
+              "All KPIs match the source of truth within agreed tolerance",
+              "Edge-case scenarios are tested and results documented",
+              "Data steward has signed off on the reconciliation results"
+            ],
+            "tags": ["powerbi", "validation", "reconciliation"]
+          },
+          {
+            "id": "PBI-UAT",
+            "title": "[{SOURCE}] PBI - UAT with Business Users",
+            "type": "User Story",
+            "owner": "BI Analyst",
+            "description": "As a BI Analyst, I need business users to formally accept the {SOURCE} report before promotion beyond {ENV}.\n\n## Scope\n- UAT plan and test scripts\n- UAT sessions with representative users\n- Defect log and fix cycle\n- Formal UAT sign-off",
+            "acceptance_criteria": [
+              "UAT plan and test scripts are approved before UAT starts",
+              "UAT sessions are executed with all key personas",
+              "All UAT defects are triaged and Sev-1/Sev-2 are resolved",
+              "Signed UAT acceptance is stored with the project artifacts"
+            ],
+            "tags": ["powerbi", "uat", "acceptance"]
+          }
+        ]
+      },
+      "step_5": {
+        "title": "Publish, Security & Handover",
+        "tickets": [
+          {
+            "id": "PBI-PUBLISH",
+            "title": "[{SOURCE}] PBI - Publish to Workspace, RLS & Access Control",
+            "type": "User Story",
+            "owner": "BI Developer",
+            "description": "As a BI Developer, I need to publish the {SOURCE} report to the appropriate {ENV} workspace/app with correct security and refresh.\n\n## Scope\n- Deploy via deployment pipeline (Dev → Test → Prod)\n- Configure scheduled/incremental refresh\n- Apply RLS and workspace/app permissions per access matrix\n- Apply sensitivity label",
+            "acceptance_criteria": [
+              "Report is deployed via the approved deployment pipeline to {ENV}",
+              "Scheduled refresh is configured and running within the SLA window",
+              "RLS is validated by testing at least one user per role",
+              "Workspace/app permissions match the approved access matrix",
+              "Sensitivity label is applied and verified"
+            ],
+            "tags": ["powerbi", "publish", "security"]
+          },
+          {
+            "id": "PBI-HANDOVER",
+            "title": "[{SOURCE}] PBI - Documentation, Training & Handover",
+            "type": "User Story",
+            "owner": "BI Analyst",
+            "description": "As a BI Analyst, I need to hand over the {SOURCE} report to end users and support with training and documentation.\n\n## Scope\n- User guide (screenshots, filter usage, drill paths)\n- KPI catalog snapshot published to the report\n- Training session for end users\n- Support runbook (refresh failures, access requests)",
+            "acceptance_criteria": [
+              "User guide is published and accessible from the report",
+              "KPI catalog is embedded or linked from the report",
+              "At least one training session is delivered and recorded",
+              "Support runbook covers refresh failures, access, and known issues",
+              "Ownership is formally transferred to the support/BI team"
+            ],
+            "tags": ["powerbi", "training", "handover"]
+          }
+        ]
+      }
+    },
+    "uiux": {
+      "label": "UI/UX Team",
+      "step_1": {
+        "title": "Discovery & User Research",
+        "tickets": [
+          {
+            "id": "UX-DISC",
+            "title": "[{SOURCE}] UX - Discovery & Stakeholder Alignment",
+            "type": "User Story",
+            "owner": "UX Researcher",
+            "description": "As a UX Researcher, I need to align on business goals, user segments, and success metrics for the {SOURCE} experience targeted at {ENV}.\n\n## Scope\n- Kickoff with product / business stakeholders\n- Problem statement and success metrics (e.g., HEART framework)\n- Competitive / heuristic review of comparable products\n- Assumptions and unknowns log",
+            "acceptance_criteria": [
+              "Problem statement and success metrics are documented and approved",
+              "Primary user segments are identified and prioritized",
+              "Competitive/heuristic review is completed with findings summarized",
+              "Open assumptions and research questions are logged"
+            ],
+            "tags": ["uiux", "discovery", "research"]
+          },
+          {
+            "id": "UX-RESEARCH",
+            "title": "[{SOURCE}] UX - User Research, Personas & Journey Map",
+            "type": "User Story",
+            "owner": "UX Researcher",
+            "description": "As a UX Researcher, I need primary user research for {SOURCE} to produce validated personas and a current-state journey map for {ENV}.\n\n## Scope\n- 5-8 user interviews across primary segments\n- Synthesis via affinity mapping\n- Personas (goals, pains, behaviors)\n- Current-state journey map with pain points and opportunities",
+            "acceptance_criteria": [
+              "User interviews are completed with representative participants and consent recorded",
+              "Synthesis / affinity mapping is documented",
+              "Personas are validated with stakeholders and published to the design system",
+              "Journey map highlights top pain points and opportunities prioritized for design"
+            ],
+            "tags": ["uiux", "research", "personas"]
+          }
+        ]
+      },
+      "step_2": {
+        "title": "Information Architecture & Wireframes",
+        "tickets": [
+          {
+            "id": "UX-IA",
+            "title": "[{SOURCE}] UX - Information Architecture & Low-Fi Wireframes",
+            "type": "User Story",
+            "owner": "UX Designer",
+            "description": "As a UX Designer, I need an information architecture and low-fidelity wireframes for {SOURCE} in {ENV} that solve the highest-priority journey pain points.\n\n## Scope\n- Site map / navigation model\n- Content inventory and hierarchy\n- Low-fidelity wireframes for critical flows\n- Card sort or tree test where scope warrants",
+            "acceptance_criteria": [
+              "Site map / navigation model is approved by product and engineering",
+              "Wireframes cover every screen in the critical user journeys",
+              "IA is validated with a card sort or tree test (or a documented rationale for skipping)",
+              "Wireframes are reviewed with engineering for feasibility"
+            ],
+            "tags": ["uiux", "ia", "wireframes"]
+          }
+        ]
+      },
+      "step_3": {
+        "title": "Visual Design & Interactive Prototype",
+        "tickets": [
+          {
+            "id": "UX-VISUAL",
+            "title": "[{SOURCE}] UX - Visual Design & Design System Alignment",
+            "type": "User Story",
+            "owner": "UI Designer",
+            "description": "As a UI Designer, I need high-fidelity visual designs for {SOURCE} in {ENV} that reuse and extend the corporate design system.\n\n## Scope\n- Hi-fi mockups for every screen and state (default, hover, error, empty, loading)\n- Reuse of existing design-system components; contribute back new ones\n- Responsive layouts for target breakpoints\n- Accessibility: color contrast, focus states, hit areas",
+            "acceptance_criteria": [
+              "Every screen has hi-fi designs covering all key states",
+              "Design-system components are reused; new components are contributed back with docs",
+              "Responsive behavior is specified for target breakpoints",
+              "Color contrast and focus states meet WCAG 2.1 AA",
+              "Design review is completed and approved by design lead"
+            ],
+            "tags": ["uiux", "visual-design", "design-system"]
+          },
+          {
+            "id": "UX-PROTO",
+            "title": "[{SOURCE}] UX - Interactive Prototype",
+            "type": "User Story",
+            "owner": "UI Designer",
+            "description": "As a UI Designer, I need a clickable prototype of {SOURCE} for {ENV} to validate flows before build and unblock stakeholder demos.\n\n## Scope\n- Clickable prototype in Figma / equivalent covering critical journeys\n- Micro-interactions and transitions for key moments\n- Prototype hosted / shared with stakeholders",
+            "acceptance_criteria": [
+              "Prototype covers all critical user journeys end-to-end",
+              "Key micro-interactions and transitions are demonstrated",
+              "Prototype link is shared with product, engineering, and stakeholders",
+              "Feedback from prototype review is captured and triaged"
+            ],
+            "tags": ["uiux", "prototype", "figma"]
+          }
+        ]
+      },
+      "step_4": {
+        "title": "Usability Testing & Iteration",
+        "tickets": [
+          {
+            "id": "UX-USAB",
+            "title": "[{SOURCE}] UX - Usability Testing & Findings Report",
+            "type": "User Story",
+            "owner": "UX Researcher",
+            "description": "As a UX Researcher, I need moderated usability testing of the {SOURCE} prototype in {ENV} to validate the design before build.\n\n## Scope\n- Test plan with tasks, scenarios, and success criteria\n- 5-8 participants per persona\n- Findings report with severity ratings and recommendations\n- Recorded sessions with consent",
+            "acceptance_criteria": [
+              "Test plan is approved before recruiting begins",
+              "Usability sessions are conducted with the target number of participants",
+              "Findings are documented with severity (blocker/major/minor) and recommendations",
+              "Recordings and highlight reel are shared with the product team"
+            ],
+            "tags": ["uiux", "usability-testing", "research"]
+          },
+          {
+            "id": "UX-ITER",
+            "title": "[{SOURCE}] UX - Design Iteration & Sign-off",
+            "type": "User Story",
+            "owner": "UI Designer",
+            "description": "As a UI Designer, I need to incorporate usability findings into the {SOURCE} design and secure final sign-off before development in {ENV}.\n\n## Scope\n- Prioritize findings jointly with product\n- Update mockups and prototype\n- Re-review with stakeholders\n- Final design sign-off",
+            "acceptance_criteria": [
+              "All blocker and major findings are addressed or explicitly deferred with rationale",
+              "Updated designs and prototype are re-reviewed with stakeholders",
+              "Final designs are approved by product, engineering, and design lead",
+              "Design change log is captured in the ticket"
+            ],
+            "tags": ["uiux", "iteration", "sign-off"]
+          }
+        ]
+      },
+      "step_5": {
+        "title": "Design Handoff & QA Support",
+        "tickets": [
+          {
+            "id": "UX-HANDOFF",
+            "title": "[{SOURCE}] UX - Design Handoff & Specs to Engineering",
+            "type": "User Story",
+            "owner": "UI Designer",
+            "description": "As a UI Designer, I need to hand off the {SOURCE} designs to engineering for build in {ENV} with everything needed to implement without ambiguity.\n\n## Scope\n- Dev-ready Figma frames with tokens, spacing, and states\n- Redlines / inspect mode enabled\n- Component-to-code mapping (design system)\n- Assets exported (icons, illustrations, images)",
+            "acceptance_criteria": [
+              "All frames are dev-ready with tokens, spacing, and state specs",
+              "Component-to-code mapping is documented for every design-system component used",
+              "Assets are exported at required densities/formats",
+              "Engineering has confirmed they have everything needed to build"
+            ],
+            "tags": ["uiux", "handoff", "specs"]
+          },
+          {
+            "id": "UX-QA",
+            "title": "[{SOURCE}] UX - Design QA During Build",
+            "type": "User Story",
+            "owner": "UI Designer",
+            "description": "As a UI Designer, I need to perform design QA on the built {SOURCE} product in {ENV} to ensure fidelity to the approved designs.\n\n## Scope\n- Screen-by-screen visual comparison against Figma\n- Interaction and micro-interaction review\n- Accessibility spot-check (contrast, focus, keyboard)\n- Defect log with severity",
+            "acceptance_criteria": [
+              "Every screen is compared to the approved design and defects are logged",
+              "All blocker/major visual and interaction defects are resolved",
+              "Accessibility spot-check is completed and issues are logged",
+              "Design lead has signed off on the final built product"
+            ],
+            "tags": ["uiux", "design-qa", "accessibility"]
+          }
+        ]
+      }
+    }
   }
 }

@@ -66,6 +66,9 @@ The original CLI still works and is useful for scripting / CI:
 python generate_tickets.py --source CTRAX --env DEV
 python generate_tickets.py --source CTRAX --env DEV --tier silver
 python generate_tickets.py --source CTRAX --env DEV --steps 1,2,3
+python generate_tickets.py --source CTRAX --env DEV --role developer
+python generate_tickets.py --source CTRAX --env DEV --role reports_powerbi,uiux --steps 1,3
+python generate_tickets.py --source CTRAX --env DEV --list-roles
 python generate_tickets.py --source CTRAX --env DEV --instructions "Follow the {SOURCE} security checklist."
 python generate_tickets.py --source CTRAX --env DEV --instructions ./notes.md
 ```
@@ -80,8 +83,13 @@ Inputs the Delivery Manager provides:
 
 - **Source** — free text (e.g. `CTRAX`, `Artiva`).
 - **Environment** — `DEV` / `QA` / `PROD`.
-- **Steps** — any combination of 1–5 (Discovery, Platform, Bronze, Silver, Gold).
-- **Tiers** — optional filter for `bronze` / `silver` / `gold`.
+- **Roles** — one or more of:
+  - `data_engineer` — 5 medallion steps (Source Discovery, Platform Setup, Bronze, Silver, Gold).
+  - `developer` — SDLC: Requirements & Design → Env Setup → Implementation → Testing → Deployment & Handover.
+  - `reports_powerbi` — KPI Definition → Semantic Model → Report Dev → UAT → Publish & Handover.
+  - `uiux` — Discovery/Research → IA/Wireframes → Visual Design/Prototype → Usability Testing → Design Handoff.
+- **Steps** — any combination of 1–5, applied per role (step numbers are role-relative).
+- **Tiers** — optional filter for `bronze` / `silver` / `gold` (applies to Data Engineer only).
 - **Custom config** — optional upload of a modified `tickets_config.json`.
 - **Custom Instructions** — free-form text appended to every ticket description. Supports `{SOURCE}` and `{ENV}` placeholders. Inserted verbatim — no LLM, no hallucination.
 
